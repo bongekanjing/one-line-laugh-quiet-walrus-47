@@ -22,6 +22,23 @@ if (!LINE.trim()) problems.push("the line is whitespace only");
 if (/\s{2,}/.test(LINE)) problems.push("the line has doubled spaces");
 if (!/[.!?]$/.test(LINE.trim())) problems.push("the line does not end on a full stop");
 
+// The joke depends on the turn arriving at the very end, so the last sentence
+// has to be the short one: a long final clause buries the word that lands it.
+// This is the one structural property the line can be checked for mechanically,
+// so it is checked here rather than trusted to the eye.
+const sentences = LINE.trim().split(/(?<=[.!?])\s+/).filter(Boolean);
+if (sentences.length < 2) problems.push("the line needs a setup sentence and a turn");
+else {
+  const last = sentences[sentences.length - 1];
+  const first = sentences[0];
+  if ([...last].length >= [...first].length) {
+    problems.push(
+      `the turn (${[...last].length} chars) is not shorter than the setup (${[...first].length} chars), ` +
+        "so it will not land last",
+    );
+  }
+}
+
 if (problems.length) {
   for (const p of problems) console.error(`invalid: ${p}`);
   process.exit(1);
